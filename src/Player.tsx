@@ -1,4 +1,4 @@
-import { Alert, AppBar, Avatar, Box, Fade, IconButton, List, ListItem, ListItemAvatar, ListItemText, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Stack, Theme, Toolbar, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Alert, AppBar, Avatar, Box, CircularProgress, Fade, IconButton, List, ListItem, ListItemAvatar, ListItemText, MenuItem, Paper, Select, SelectChangeEvent, Snackbar, Stack, Theme, Toolbar, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LoaderFunctionArgs, useLoaderData, useNavigate } from "react-router-dom";
 import deepEqual from "deep-equal";
@@ -121,23 +121,25 @@ export default function Player() {
                   <List>
                     {
                       entryIndex === history.length - 1 ?
-                        entry.suggestions.map((suggestion, suggestionIndex) => (
-                          <ListItem secondaryAction={
-                            <IconButton edge="end" onClick={() => onChooseSuggestion(suggestionIndex)}>
-                              <CheckCircle />
-                            </IconButton>
-                          }>
-                            <ListItemAvatar>
-                              <Avatar>
-                                {
-                                  suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
-                                }
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText primary={suggestion.summary} />
-                          </ListItem>
-                      ))
-                      : <div/>
+                        entry.suggestions.length === 0 ?
+                          (<CircularProgress color="secondary"/>) :
+                          entry.suggestions.map((suggestion, suggestionIndex) => (
+                            <ListItem secondaryAction={
+                              <IconButton edge="end" onClick={() => onChooseSuggestion(suggestionIndex)}>
+                                <CheckCircle />
+                              </IconButton>
+                            }>
+                              <ListItemAvatar>
+                                <Avatar>
+                                  {
+                                    suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
+                                  }
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText primary={suggestion.summary} />
+                            </ListItem>
+                          ))
+                          : <div/>
                     }
                   </List>
                 </Box>
