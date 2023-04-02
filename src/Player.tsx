@@ -43,7 +43,7 @@ export default function Player() {
       'chunk': 0,
       'totalChunks': 1,
       'maxNewTokens': 256,
-      'generations': 3,
+      'generations': 2,
       'summarize': true,
     };
     fetchJSON("https://api.hooloovoo.ai/generate", {
@@ -85,7 +85,9 @@ export default function Player() {
     setHistory((prev) => {
       if (!prev)
         return [];
+      console.log("prev", prev);
       const text = prev[prev.length - 1].suggestions[index].text;
+      console.log("text", text);
       return [...prev, {
         text: text,
         lines: text.split('\n'),
@@ -95,13 +97,35 @@ export default function Player() {
     // setAudioSrc(`https://api.hooloovoo.ai/tts?text=${encodeURIComponent(suggestions[index].text)}`)
   }, [history]);
 
+  const onUndo = useCallback(() => {
+    if (history === undefined || history.length === 0)
+      return;
+    setHistory((prev) => {
+      if (!prev)
+        return [];
+      prev.pop();
+      return [...prev];
+    });
+  }, [history]);
+  
+  const onRetry = useCallback(() => {
+    if (history === undefined || history.length === 0)
+      return;
+    setHistory((prev) => {
+      if (!prev)
+        return [];
+      prev[prev.length - 1].suggestions = [];
+      return [...prev];
+    });
+  }, [history]);
+
   return (
     <Box height="100vh" display="flex" flexDirection="column">
       <Box overflow="auto" flex={1} margin={2}>
         {
           history ?
             history.map((entry, entryIndex) => (
-              <Entry entry={entry} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} />
+              <Entry entry={entry} isFirst={entryIndex === 0} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} onUndo={onUndo} onRetry={onRetry} />
             )) : <div />
         }
         <div key="scroll" ref={scrollIntoViewRef}></div>
