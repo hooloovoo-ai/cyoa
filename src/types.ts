@@ -6,5 +6,14 @@ export interface Suggestion {
 export interface History {
   text: string,
   lines: string[],
-  suggestions: Suggestion[]
+  suggestions: Suggestion[],
+  narrationDuration: number | undefined,
+  narrationURL: string | undefined,
+  didReveal: boolean,
+}
+
+export interface InitialPrompt {
+  title: string,
+  genre: string,
+  text: string
 }

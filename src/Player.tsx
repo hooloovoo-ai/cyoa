@@ -3,11 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactAudioPlayer from "react-audio-player";
 import { fetchJSON } from "./util";
 import Entry from "./Entry";
-import { History, Suggestion } from "./types";
+import { History, InitialPrompt, Suggestion } from "./types";
+import * as InitialPrompts from "./prompts.json"
 
 const LISTEN_INTERVAL = 33;
-// const INITIAL_PROMPT = "A Memory of Fire\nJeffrey Quesnelle\n\nPROLOGUE\nThe last of the stones had been toppled long ago, but that didn't stop Tomin from letting his fingers wistfully graze the cold ground as if his mere touch could resurrect the once-great hall that was now nothing more than a slightly smoother patch of arid land. His memories of the hall were hazy, as if coming to him from a long-lost dream; the more he focused on them the quicker they seemed to melt away.\n\nHe was sure of one thing, though. The Great Hall of Porice had been home to the Emerald Chair. He wasn't sure why that was important, but the clarity of the thought was in such contrast to his other vague recollections that he knew it must be true.";
-const INITIAL_PROMPT = "The Stars Below\nJeffrey Quesnelle\n\nCHAPTER ONE\nIt had been fifty years since anyone had really called Earth home. Of course, you could still go there -- people did all the time -- but since the Great Awakening had begun Earth was much more of a curiosity than a place to be. It all started when Helios first came online. That's what people meant when they referred to the Great Awakening: the birth of Helios, the first truly aritifical general intelligence.";
+const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts;
+const REVEAL_DURATION = 20 * 1000;
 
 export default function Player() {
 
@@ -22,6 +23,7 @@ export default function Player() {
   const player = useRef<ReactAudioPlayer>(null);
 
   const id = useMemo(() => Date.now().toString(), []);
+  const initialPrompt = useMemo(() => INITIAL_PROMPTS[Math.floor(Math.random() * INITIAL_PROMPTS.length)], []);
 
   const [audioSrc, setAudioSrc] = useState<string>();
 
@@ -30,9 +32,12 @@ export default function Player() {
   useEffect(() => {
     if (history === undefined) {
       setHistory([{
-        text: INITIAL_PROMPT,
-        lines: INITIAL_PROMPT.split('\n'),
+        text: initialPrompt.text,
+        lines: initialPrompt.text.split('\n'),
+        narrationDuration: REVEAL_DURATION,
+        narrationURL: undefined,
         suggestions: [],
+        didReveal: false,
       }]);
       return;
     }
@@ -92,7 +97,10 @@ export default function Player() {
       return [...prev, {
         text: text,
         lines: text.split('\n'),
-        suggestions: []
+        narrationDuration: REVEAL_DURATION,
+        narrationURL: undefined,
+        suggestions: [],
+        didReveal: false
       }];
     });
     // setAudioSrc(`https://api.hooloovoo.ai/tts?text=${encodeURIComponent(suggestions[index].text)}`)
