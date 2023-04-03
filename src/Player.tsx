@@ -4,11 +4,11 @@ import ReactAudioPlayer from "react-audio-player";
 import { fetchJSON } from "./util";
 import Entry from "./Entry";
 import { History, InitialPrompt, Suggestion } from "./types";
-import * as InitialPrompts from "./prompts.json"
+import { default as InitialPrompts } from "./prompts.json"
 
 const LISTEN_INTERVAL = 33;
-const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts;
 const REVEAL_DURATION = 20 * 1000;
+const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
 export default function Player() {
 
@@ -21,28 +21,33 @@ export default function Player() {
   }, []);
 
   const player = useRef<ReactAudioPlayer>(null);
-
-  const id = useMemo(() => Date.now().toString(), []);
-  const initialPrompt = useMemo(() => INITIAL_PROMPTS[Math.floor(Math.random() * INITIAL_PROMPTS.length)], []);
-
   const [audioSrc, setAudioSrc] = useState<string>();
 
-  const [history, setHistory] = useState<History[]>();
+  const [history, setHistory] = useState<History[]>(() => { return [{
+      text: "",
+      lines: [],
+      narrationDuration: 0,
+      narrationURL: undefined,
+      suggestions: INITIAL_PROMPTS.map(prompt => ({
+        text: prompt.text,
+        summary: `${prompt.genre}: ${prompt.title}`
+      })),
+      didReveal: false,
+      chosenSuggestion: undefined
+    }]});
 
+  const scrollIntoViewRef = useRef<HTMLDivElement>(null);
+  const performScrolldown = useRef(false);
   useEffect(() => {
-    if (history === undefined) {
-      setHistory([{
-        text: initialPrompt.text,
-        lines: initialPrompt.text.split('\n'),
-        narrationDuration: REVEAL_DURATION,
-        narrationURL: undefined,
-        suggestions: [],
-        didReveal: false,
-      }]);
-      return;
+    if (performScrolldown.current) {
+      setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 500);
     }
-    if (history.length === 0 || history[history.length - 1].suggestions.length !== 0)
-      return;
+    performScrolldown.current = true;
+  }, [history]);
+
+  
+  const id = useMemo(() => Date.now().toString(), []);
+  const suggest = useCallback((retry: boolean) => {
     const args = {
       'id': id,
       'text': history.reduce((prev, curr) => prev + curr.text, ""),
@@ -60,73 +65,59 @@ export default function Player() {
     })
       .catch(err => setErrorMessage(err.toString()))
       .then(data => {
-        const result: Suggestion[] = [];
+        const suggestions: Suggestion[] = [];
         for (let i = 0; i < data.results.length; i++) {
-          result.push({
+          suggestions.push({
             text: data.results[i],
             summary: data.summaries[i]
           });
         }
         setHistory((prev) => {
-          if (!prev)
-            return [];
-          prev[prev.length - 1].suggestions = result;
-          return [...prev];
+          if (retry) {
+            prev[prev.length - 1].suggestions = suggestions;
+            return [...prev];
+          } else {
+            return [...prev, {
+              text: "",
+              lines: [],
+              narrationDuration: undefined,
+              narrationURL: undefined,
+              suggestions: suggestions,
+              didReveal: false,
+              chosenSuggestion: undefined
+            }];
+          }
         });
       });
   }, [history, id]);
 
-  const scrollIntoViewRef = useRef<HTMLDivElement>(null);
-  const performScrolldown = useRef(false);
-  useEffect(() => {
-    if (performScrolldown.current) {
-      setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 500);
-    }
-    performScrolldown.current = true;
-  }, [history]);
-
   const onChooseSuggestion = useCallback((index: number) => {
-    if (history === undefined || history.length === 0 || index >= history[history.length - 1].suggestions.length)
-      return;
     setHistory((prev) => {
-      if (!prev)
-        return [];
-      console.log("prev", prev);
-      const text = prev[prev.length - 1].suggestions[index].text;
-      console.log("text", text);
-      return [...prev, {
-        text: text,
-        lines: text.split('\n'),
-        narrationDuration: REVEAL_DURATION,
-        narrationURL: undefined,
-        suggestions: [],
-        didReveal: false
-      }];
+      const last = prev[prev.length - 1];
+      last.text = last.suggestions[index].text;
+      last.lines = last.text.split("\n");
+      last.narrationDuration = REVEAL_DURATION;
+      last.chosenSuggestion = index;
+      return [...prev];
     });
+    suggest(false);
     // setAudioSrc(`https://api.hooloovoo.ai/tts?text=${encodeURIComponent(suggestions[index].text)}`)
-  }, [history]);
+  }, [suggest]);
 
   const onUndo = useCallback(() => {
-    if (history === undefined || history.length === 0)
-      return;
     setHistory((prev) => {
-      if (!prev)
-        return [];
       prev.pop();
       return [...prev];
     });
-  }, [history]);
+  }, []);
   
   const onRetry = useCallback(() => {
-    if (history === undefined || history.length === 0)
-      return;
     setHistory((prev) => {
-      if (!prev)
-        return [];
       prev[prev.length - 1].suggestions = [];
+      setTimeout(() => suggest(true), 0);
       return [...prev];
     });
-  }, [history]);
+  }, []);
 
   return (
     <Box height="100vh" display="flex" flexDirection="column">

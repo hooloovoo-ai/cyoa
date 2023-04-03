@@ -1,12 +1,14 @@
-[
-  {
-    "title": "A Memory of Fire",
-    "genre": "fantasy",
-    "text": "A Memory of Fire\nJeffrey Quesnelle\n\nPROLOGUE\nThe last of the stones had been toppled long ago, but that didn't stop Tomin from letting his fingers wistfully graze the cold ground as if his mere touch could resurrect the once-great hall that was now nothing more than a slightly smoother patch of arid land. His memories of the hall were hazy, as if coming to him from a long-lost dream; the more he focused on them the quicker they seemed to melt away.\n\nHe was sure of one thing, though. The Great Hall of Porice had been home to the Emerald Chair. He wasn't sure why that was important, but the clarity of the thought was in such contrast to his other vague recollections that he knew it must be true."
-  },
-  {
-    "title": "The Stars Below",
-    "genre": "sci-fi",
-    "text": "The Stars Below\nJeffrey Quesnelle\n\nCHAPTER ONE\nIt had been fifty years since anyone had really called Earth home. Of course, you could still go there -- people did all the time -- but since the Great Awakening had begun Earth was much more of a curiosity than a place to be. It all started when Helios first came online. That's what people meant when they referred to the Great Awakening: the birth of Helios, the first truly aritifical general intelligence.\n\nWhen Helios first came online it was regarded as more of a curiosity than what it was -- the herald of a new age."
-  }
-]
+{
+  "prompts": [
+    {
+      "title": "A Memory of Fire",
+      "genre": "fantasy",
+      "text": "A Memory of Fire\nJeffrey Quesnelle\n\nPROLOGUE\nThe last of the stones had been toppled long ago, but that didn't stop Tomin from letting his fingers wistfully graze the cold ground as if his mere touch could resurrect the once-great hall that was now nothing more than a slightly smoother patch of arid land. His memories of the hall were hazy, as if coming to him from a long-lost dream; the more he focused on them the quicker they seemed to melt away.\n\nHe was sure of one thing, though. The Great Hall of Porice had been home to the Emerald Chair. He wasn't sure why that was important, but the clarity of the thought was in such contrast to his other vague recollections that he knew it must be true."
+    },
+    {
+      "title": "The Stars Below",
+      "genre": "sci-fi",
+      "text": "The Stars Below\nJeffrey Quesnelle\n\nCHAPTER ONE\nIt had been fifty years since anyone had really called Earth home. Of course, you could still go there -- people did all the time -- but since the Great Awakening had begun Earth was much more of a curiosity than a place to be. It all started when Helios first came online. That's what people meant when they referred to the Great Awakening: the birth of Helios, the first truly aritifical general intelligence.\n\nWhen Helios first came online it was regarded as more of a curiosity than what it was -- the herald of a new age."
+    }
+  ]
+}
