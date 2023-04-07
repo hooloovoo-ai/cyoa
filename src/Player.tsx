@@ -1,4 +1,4 @@
-import { Alert, Box, Snackbar } from "@mui/material";
+import { Alert, Box, Container, Snackbar } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactAudioPlayer from "react-audio-player";
 import { fetchJSON } from "./util";
@@ -120,22 +120,24 @@ export default function Player() {
   }, []);
 
   return (
-    <Box height="100vh" display="flex" flexDirection="column">
-      <Box overflow="auto" flex={1} margin={2}>
-        {
-          history ?
-            history.map((entry, entryIndex) => (
-              <Entry entry={entry} isFirst={entryIndex === 0} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} onUndo={onUndo} onRetry={onRetry} />
-            )) : <div />
-        }
-        <div key="scroll" ref={scrollIntoViewRef}></div>
-      </Box>
-      <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} />
-      <Snackbar open={errorMessage !== undefined} autoHideDuration={10000} onClose={handleErrorClose}>
-        <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
-          {errorMessage}
-        </Alert>
-      </Snackbar>
-    </Box>
+    <Container maxWidth="md">
+      <Box height="100vh" display="flex" flexDirection="column">
+        <Box overflow="auto" flex={1} margin={2}>
+          {
+            history ?
+              history.map((entry, entryIndex) => (
+                <Entry entry={entry} isFirst={entryIndex === 0} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} onUndo={onUndo} onRetry={onRetry} />
+              )) : <div />
+          }
+          <div key="scroll" ref={scrollIntoViewRef}></div>
+        </Box>
+        <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} />
+        <Snackbar open={errorMessage !== undefined} autoHideDuration={10000} onClose={handleErrorClose}>
+          <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
+            {errorMessage}
+          </Alert>
+        </Snackbar>
+      </Box> 
+    </Container>
   );
 }

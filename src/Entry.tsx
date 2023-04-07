@@ -86,31 +86,16 @@ export default function Entry(params: EntryParams) {
       <Fade in={true} timeout={1000}>
         <Stack direction="row">
           {
-            params.entry.suggestions.length > 0
-              ? (
-                <Stack justifyContent="center" alignItems="center" spacing={3} visibility={!params.isFirst && params.isLatest ? "visible" : "hidden"}>
-                  <IconButton aria-label="undo" onClick={params.onUndo}>
-                    <Undo />
-                  </IconButton>
-                  <IconButton aria-label="retry" onClick={params.onRetry}>
-                    <Replay />
-                  </IconButton>
-                </Stack>
-              )
-              : <div />
-          }
-          {
             params.entry.suggestions.length === 0
               ? (<LinearProgress color="secondary" sx={{ width: "100%" }} />)
               : (
-                <List>
+                <List style={{ "width": "100%" }}>
                   {
                     params.entry.suggestions.map((suggestion, suggestionIndex) => (
-                      <ListItem key={suggestionIndex} secondaryAction={
-                        <IconButton edge="end" onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                      <ListItem key={suggestionIndex}>
+                        <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
                           <CheckCircle />
                         </IconButton>
-                      }>
                         <ListItemAvatar>
                           <Avatar>
                             {
@@ -124,6 +109,20 @@ export default function Entry(params: EntryParams) {
                   }
                 </List>
               )
+          }
+          {
+            params.entry.suggestions.length > 0
+              ? (
+                <Stack justifyContent="center" alignItems="center" spacing={3} visibility={!params.isFirst && params.isLatest ? "visible" : "hidden"}>
+                  <IconButton aria-label="undo" onClick={params.onUndo}>
+                    <Undo />
+                  </IconButton>
+                  <IconButton aria-label="retry" onClick={params.onRetry}>
+                    <Replay />
+                  </IconButton>
+                </Stack>
+              )
+              : <div />
           }
         </Stack>
       </Fade>
