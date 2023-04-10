@@ -10,6 +10,7 @@ export interface History {
   narrationDuration: number | undefined,
   narrationURL: string | undefined,
   didReveal: boolean,
+  editing: boolean,
   chosenSuggestion: number | undefined,
 }
 

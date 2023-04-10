@@ -10,6 +10,7 @@ export interface EntryParams {
   onChooseSuggestion: (index: number) => void,
   onUndo: () => void,
   onRetry: () => void,
+  doScrolldown: () => void,
 }
 
 interface Reveal {
@@ -48,6 +49,7 @@ export default function Entry(params: EntryParams) {
           };
         });
       }, 33);
+      params.doScrolldown();
     }
   }, [reveal]);
 
@@ -86,43 +88,47 @@ export default function Entry(params: EntryParams) {
       <Fade in={true} timeout={1000}>
         <Stack direction="row">
           {
-            params.entry.suggestions.length === 0
-              ? (<LinearProgress color="secondary" sx={{ width: "100%" }} />)
-              : (
-                <List style={{ "width": "100%" }}>
-                  {
-                    params.entry.suggestions.map((suggestion, suggestionIndex) => (
-                      <ListItem key={suggestionIndex}>
-                        <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
-                          <CheckCircle />
-                        </IconButton>
-                        <ListItemAvatar>
-                          <Avatar>
-                            {
-                              suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
-                            }
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={suggestion.summary} />
-                      </ListItem>
-                    ))
-                  }
-                </List>
-              )
-          }
-          {
-            params.entry.suggestions.length > 0
+            params.entry.suggestions.length > 0 && params.isLatest
               ? (
-                <Stack justifyContent="center" alignItems="center" spacing={3} visibility={!params.isFirst && params.isLatest ? "visible" : "hidden"}>
-                  <IconButton aria-label="undo" onClick={params.onUndo}>
-                    <Undo />
-                  </IconButton>
-                  <IconButton aria-label="retry" onClick={params.onRetry}>
-                    <Replay />
-                  </IconButton>
-                </Stack>
+                <Fade in={params.isLatest} timeout={1000}>
+                  <List style={{ "width": "100%" }}>
+                    {
+                      params.entry.suggestions.map((suggestion, suggestionIndex) => (
+                        <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
+                          <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                            <CheckCircle />
+                          </IconButton>
+                          <ListItemAvatar>
+                            <Avatar>
+                              {
+                                suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
+                              }
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={suggestion.summary} />
+                        </ListItem>
+                      ))
+                    }
+                  </List>
+                </Fade>
               )
               : <div />
+          }
+          {
+            params.entry.suggestions.length > 0 && params.isLatest
+              ? (
+                <Fade in={params.isLatest} timeout={1000}>
+                  <Stack justifyContent="center" alignItems="center" spacing={3} visibility={!params.isFirst && params.isLatest ? "visible" : "hidden"}>
+                    <IconButton aria-label="undo" onClick={params.onUndo}>
+                      <Undo />
+                    </IconButton>
+                    <IconButton aria-label="retry" onClick={params.onRetry}>
+                      <Replay />
+                    </IconButton>
+                  </Stack>
+                </Fade>
+              )
+              : (params.entry.suggestions.length === 0 ? <LinearProgress color="secondary" sx={{ width: "100%" }} /> : <div />)
           }
         </Stack>
       </Fade>
@@ -138,6 +144,11 @@ export default function Entry(params: EntryParams) {
               {unfaded}
               {fadeChars.map((char, index) => (<span style={{ "opacity": 1 - ((index + 1) / fadeChars.length) }}>{char}</span>))}
             </p>)
+          : <div />
+      }
+      {
+        params.isLatest && params.entry.didReveal && !params.entry.editing
+          ? (<LinearProgress color="secondary" sx={{ width: "100%" }} />)
           : <div />
       }
     </Box>

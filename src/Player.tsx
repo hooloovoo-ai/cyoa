@@ -7,7 +7,7 @@ import { History, InitialPrompt, Suggestion } from "./types";
 import { default as InitialPrompts } from "./prompts.json"
 
 const LISTEN_INTERVAL = 33;
-const REVEAL_DURATION = 20 * 1000;
+const REVEAL_DURATION = 45 * 1000;
 const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
 export default function Player() {
@@ -23,7 +23,8 @@ export default function Player() {
   const player = useRef<ReactAudioPlayer>(null);
   const [audioSrc, setAudioSrc] = useState<string>();
 
-  const [history, setHistory] = useState<History[]>(() => { return [{
+  const [history, setHistory] = useState<History[]>(() => {
+    return [{
       text: "",
       lines: [],
       narrationDuration: 0,
@@ -33,19 +34,22 @@ export default function Player() {
         summary: `${prompt.genre}: ${prompt.title}`
       })),
       didReveal: false,
+      editing: false,
       chosenSuggestion: undefined
-    }]});
+    }]
+  });
 
   const scrollIntoViewRef = useRef<HTMLDivElement>(null);
   const performScrolldown = useRef(false);
+  const doScrolldown = useCallback(() => setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 500), []);
   useEffect(() => {
     if (performScrolldown.current) {
-      setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 500);
+      doScrolldown();
     }
     performScrolldown.current = true;
   }, [history]);
 
-  
+
   const id = useMemo(() => Date.now().toString(), []);
   const suggest = useCallback((retry: boolean) => {
     const args = {
@@ -84,6 +88,7 @@ export default function Player() {
               narrationURL: undefined,
               suggestions: suggestions,
               didReveal: false,
+              editing: false,
               chosenSuggestion: undefined
             }];
           }
@@ -98,6 +103,7 @@ export default function Player() {
       last.lines = last.text.split("\n");
       last.narrationDuration = REVEAL_DURATION;
       last.chosenSuggestion = index;
+      last.editing = false;
       return [...prev];
     });
     suggest(false);
@@ -107,26 +113,27 @@ export default function Player() {
   const onUndo = useCallback(() => {
     setHistory((prev) => {
       prev.pop();
+      prev[prev.length - 1].editing = true;
       return [...prev];
     });
   }, []);
-  
+
   const onRetry = useCallback(() => {
     setHistory((prev) => {
       prev[prev.length - 1].suggestions = [];
       setTimeout(() => suggest(true), 0);
       return [...prev];
     });
-  }, []);
+  }, [suggest]);
 
   return (
     <Container maxWidth="md">
       <Box height="100vh" display="flex" flexDirection="column">
-        <Box overflow="auto" flex={1} margin={2}>
+        <Box flex={1} margin={2}>
           {
             history ?
               history.map((entry, entryIndex) => (
-                <Entry entry={entry} isFirst={entryIndex === 0} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} onUndo={onUndo} onRetry={onRetry} />
+                <Entry entry={entry} isFirst={entryIndex === 0} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} onUndo={onUndo} onRetry={onRetry} doScrolldown={doScrolldown} />
               )) : <div />
           }
           <div key="scroll" ref={scrollIntoViewRef}></div>
@@ -137,7 +144,7 @@ export default function Player() {
             {errorMessage}
           </Alert>
         </Snackbar>
-      </Box> 
+      </Box>
     </Container>
   );
 }
