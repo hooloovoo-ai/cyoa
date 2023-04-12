@@ -7,7 +7,7 @@ import { History, InitialPrompt, Suggestion } from "./types";
 import { default as InitialPrompts } from "./prompts.json"
 
 const LISTEN_INTERVAL = 33;
-const REVEAL_DURATION = 45 * 1000;
+const DEFAULT_REVEAL_DURATION = 45 * 1000;
 const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
 export default function Player() {
@@ -47,7 +47,7 @@ export default function Player() {
       doScrolldown();
     }
     performScrolldown.current = true;
-  }, [history]);
+  }, [history, doScrolldown]);
 
 
   const id = useMemo(() => Date.now().toString(), []);
@@ -56,7 +56,7 @@ export default function Player() {
       'id': id,
       'text': history.reduce((prev, curr) => prev + curr.text, ""),
       'chunk': 0,
-      'totalChunks': 1,
+      'totalChunks': 10,
       'maxNewTokens': 256,
       'generations': 2,
       'summarize': true,
@@ -97,18 +97,38 @@ export default function Player() {
   }, [history, id]);
 
   const onChooseSuggestion = useCallback((index: number) => {
+    const lastIndex = history.length - 1;
+    const args = {
+      'text': history[lastIndex].suggestions[index].text,
+    };
+    fetchJSON("https://api.hooloovoo.ai/imagine", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(args)
+    })
+      .catch(err => setErrorMessage(err.toString()))
+      .then(data => {
+        setHistory((prev) => {
+          if (data.audio_url.length > 0 && data.audio_duration > 0) {
+            prev[lastIndex].narrationDuration = Math.floor(data.audio_duration * 1000);
+            setAudioSrc(data.audio_url);
+          } else {
+            prev[lastIndex].narrationDuration = DEFAULT_REVEAL_DURATION;
+          }
+          return [...prev];
+        });
+      });
     setHistory((prev) => {
-      const last = prev[prev.length - 1];
+      const last = prev[lastIndex];
       last.text = last.suggestions[index].text;
       last.lines = last.text.split("\n");
-      last.narrationDuration = REVEAL_DURATION;
+      last.narrationDuration = undefined;
       last.chosenSuggestion = index;
       last.editing = false;
       return [...prev];
     });
     suggest(false);
-    // setAudioSrc(`https://api.hooloovoo.ai/tts?text=${encodeURIComponent(suggestions[index].text)}`)
-  }, [suggest]);
+  }, [suggest, history]);
 
   const onUndo = useCallback(() => {
     setHistory((prev) => {
@@ -138,7 +158,7 @@ export default function Player() {
           }
           <div key="scroll" ref={scrollIntoViewRef}></div>
         </Box>
-        <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} />
+        <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} autoPlay />
         <Snackbar open={errorMessage !== undefined} autoHideDuration={10000} onClose={handleErrorClose}>
           <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
             {errorMessage}

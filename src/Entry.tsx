@@ -23,8 +23,11 @@ export default function Entry(params: EntryParams) {
   const [reveal, setReveal] = useState<Reveal>();
 
   useEffect(() => {
-    if (params.entry.narrationDuration === undefined || !params.isLatest || params.entry.didReveal || params.entry.chosenSuggestion === undefined || params.entry.chosenSuggestion === -1)
+    if (params.entry.narrationDuration === undefined || !params.isLatest || params.entry.didReveal || params.entry.chosenSuggestion === undefined || params.entry.chosenSuggestion === -1) {
+      console.log("Awaiting reveal")
       return;
+    }
+    console.log("Starting reveal")
     setReveal({
       start: Date.now(),
       end: Date.now() + params.entry.narrationDuration,
@@ -51,35 +54,30 @@ export default function Entry(params: EntryParams) {
       }, 33);
       params.doScrolldown();
     }
-  }, [reveal]);
+  }, [reveal, params]);
 
   let linesToShow = params.entry.lines;
   let unfaded = "";
   let fadeChars: string[] = [];
-  if (params.isLatest) {
-    // if (params.entry.narrationDuration === undefined || reveal === undefined) {
-    //   return (<Paper elevation={3}><LinearProgress sx={{ "width": "100%" }} /></Paper>);
-    // } 
 
-    if (reveal) {
-      if (reveal.percent < 1) {
-        linesToShow = [];
-        let charsLeft = Math.floor(reveal.percent * params.entry.text.length);
-        for (let i = 0; i < params.entry.lines.length; ++i) {
-          const line = params.entry.lines[i];
-          linesToShow.push(line.substring(0, charsLeft));
-          charsLeft -= linesToShow[i].length;
-          if (charsLeft === 0)
-            break;
-        }
-        const fadeLine = linesToShow.pop() ?? "";
-        const charsToFade = Math.min(5, fadeLine.length);
-        const unfadedLength = fadeLine.length - charsToFade;
-        unfaded = fadeLine.substring(0, unfadedLength);
-        fadeChars = fadeLine.substring(unfadedLength).split("");
-      } else {
-        params.entry.didReveal = true;
+  if (reveal) {
+    if (reveal.percent < 1) {
+      linesToShow = [];
+      let charsLeft = Math.floor(reveal.percent * params.entry.text.length);
+      for (let i = 0; i < params.entry.lines.length; ++i) {
+        const line = params.entry.lines[i];
+        linesToShow.push(line.substring(0, charsLeft));
+        charsLeft -= linesToShow[i].length;
+        if (charsLeft === 0)
+          break;
       }
+      const fadeLine = linesToShow.pop() ?? "";
+      const charsToFade = Math.min(5, fadeLine.length);
+      const unfadedLength = fadeLine.length - charsToFade;
+      unfaded = fadeLine.substring(0, unfadedLength);
+      fadeChars = fadeLine.substring(unfadedLength).split("");
+    } else {
+      params.entry.didReveal = true;
     }
   }
 
@@ -95,14 +93,14 @@ export default function Entry(params: EntryParams) {
                     {
                       params.entry.suggestions.map((suggestion, suggestionIndex) => (
                         <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
-                          <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
-                            <CheckCircle />
-                          </IconButton>
+
                           <ListItemAvatar>
                             <Avatar>
-                              {
-                                suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
-                              }
+                              <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                                {
+                                  suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
+                                }
+                              </IconButton>
                             </Avatar>
                           </ListItemAvatar>
                           <ListItemText primary={suggestion.summary} />
@@ -135,7 +133,7 @@ export default function Entry(params: EntryParams) {
       {
         !params.isLatest || reveal // wait until reveal is set by useEffect (prevent flashing)
           ? linesToShow.map((line, lineIndex) => (<p key={lineIndex}>{line}</p>))
-          : <div />
+          : (params.entry.chosenSuggestion !== undefined ? <LinearProgress color="secondary" sx={{ width: "100%" }} /> : <div />)
       }
       {
         reveal // wait until reveal is set by useEffect (prevent flashing)
