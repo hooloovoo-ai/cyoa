@@ -42,7 +42,7 @@ export default function Player() {
 
   const scrollIntoViewRef = useRef<HTMLDivElement>(null);
   const performScrolldown = useRef(false);
-  const doScrolldown = useCallback(() => setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 500), []);
+  const doScrolldown = useCallback(() => setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 1), []);
   useEffect(() => {
     if (performScrolldown.current) {
       doScrolldown();

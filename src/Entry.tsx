@@ -19,6 +19,7 @@ interface Reveal {
   start: number,
   end: number,
   percent: number,
+  lastScrollDown: number
 }
 
 export default function Entry(params: EntryParams) {
@@ -36,8 +37,36 @@ export default function Entry(params: EntryParams) {
       start: Date.now(),
       end: Date.now() + params.entry.revealDuration,
       percent: params.entry.revealDuration === 0 ? 1 : 0,
+      lastScrollDown: Date.now(),
     });
   }, [params.entry.revealDuration, params.isLatest, params.entry.didReveal, params.entry.chosenSuggestion, params.entryIndex]);
+
+  const [enableAutoScroll, setEnableAutoScroll] = useState(true);
+  const [atBottom, setAtBottom] = useState(true);
+  const [pageYOffset, setPageYOffset] = useState(0);
+  const [previousPageYOffset, setPreviousPageYOffset] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setPageYOffset(window.pageYOffset);
+      setAtBottom((window.innerHeight + window.pageYOffset) >= document.body.scrollHeight - 2);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (pageYOffset < previousPageYOffset) {
+      setEnableAutoScroll(false);
+    } else if (atBottom && !enableAutoScroll) {
+      setEnableAutoScroll(true);
+    }
+    setPreviousPageYOffset(pageYOffset);
+  }, [pageYOffset, atBottom, previousPageYOffset, enableAutoScroll]);
 
   useEffect(() => {
     if (!reveal)
@@ -50,15 +79,24 @@ export default function Entry(params: EntryParams) {
           const duration = prev.end - prev.start;
           const elapsed = Date.now() - prev.start;
           const percent = Math.min(1, elapsed / duration);
+
+          let lastScrollDown = prev.lastScrollDown;
+          if (Date.now() - lastScrollDown >= 500) {
+            if (enableAutoScroll) {
+              params.doScrolldown();
+              lastScrollDown = Date.now();
+            }
+          }
+
           return {
             ...prev,
-            percent: percent
+            percent: percent,
+            lastScrollDown: lastScrollDown
           };
         });
       }, 33);
-      params.doScrolldown();
     }
-  }, [reveal, params]);
+  }, [reveal, params, enableAutoScroll]);
 
   const [imagePlacements, setImagePlacements] = useState<(string | undefined)[]>();
 
