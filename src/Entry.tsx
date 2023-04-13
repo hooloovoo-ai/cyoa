@@ -171,9 +171,11 @@ export default function Entry(params: EntryParams) {
                   ? (
                     <div>
                       <p key={lineIndex}>{line}</p>
-                      <Fade in={true} timeout={2000}>
-                        <img src={imagePlacements[lineIndex]} />
-                      </Fade>
+                      <Stack>
+                        <Fade in={true} timeout={2000}>
+                          <img src={imagePlacements[lineIndex]} />
+                        </Fade>
+                      </Stack>
                     </div>
                   )
                   : <p key={lineIndex}>{line}</p>
