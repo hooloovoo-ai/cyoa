@@ -1,14 +1,15 @@
-import { Looks3Outlined, LooksOneOutlined, LooksTwoOutlined, Replay, Undo } from "@mui/icons-material";
-import { Avatar, Box, Fade, IconButton, LinearProgress, List, ListItem, ListItemAvatar, ListItemText, Paper, Stack } from "@mui/material";
-import { useEffect, useState } from "react";
+import { LooksOneOutlined, LooksTwoOutlined, MoreVert, Replay, SkipPrevious, Undo } from "@mui/icons-material";
+import { Avatar, Box, Fade, IconButton, LinearProgress, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
 import { History } from "./types";
 
 export interface EntryParams {
   entry: History,
   isFirst: boolean,
   isLatest: boolean,
+  entryIndex: number,
   onChooseSuggestion: (index: number) => void,
-  onUndo: () => void,
+  onResetTo: (index: number) => void,
   onRetry: () => void,
   doScrolldown: () => void,
 }
@@ -23,17 +24,20 @@ export default function Entry(params: EntryParams) {
   const [reveal, setReveal] = useState<Reveal>();
 
   useEffect(() => {
-    if (params.entry.revealDuration === undefined || !params.isLatest || params.entry.didReveal || params.entry.chosenSuggestion === undefined || params.entry.chosenSuggestion === -1) {
-      console.log("Awaiting reveal")
+    if (
+      params.entry.revealDuration === undefined ||
+      !params.isLatest ||
+      params.entry.didReveal ||
+      params.entry.chosenSuggestion === undefined ||
+      params.entry.chosenSuggestion === -1) {
       return;
     }
-    console.log("Starting reveal")
     setReveal({
       start: Date.now(),
       end: Date.now() + params.entry.revealDuration,
       percent: params.entry.revealDuration === 0 ? 1 : 0,
     });
-  }, [params.entry.revealDuration, params.isLatest, params.entry.didReveal, params.entry.chosenSuggestion]);
+  }, [params.entry.revealDuration, params.isLatest, params.entry.didReveal, params.entry.chosenSuggestion, params.entryIndex]);
 
   useEffect(() => {
     if (!reveal)
@@ -89,6 +93,23 @@ export default function Entry(params: EntryParams) {
     setImagePlacements(ret);
   }, [params.entry.images, params.entry.lines]);
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleMenuClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  }, []);
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
+  const onMenuResetTo = useCallback((index: number) => {
+    handleMenuClose();
+    params.onResetTo(index);
+  }, [params, handleMenuClose]);
+  const onMenuRetry = useCallback(() => {
+    handleMenuClose();
+    params.onRetry();
+  }, [params, handleMenuClose]);
+
   let linesToShow = params.entry.lines;
   let unfaded = "";
   let fadeChars: string[] = [];
@@ -116,51 +137,73 @@ export default function Entry(params: EntryParams) {
 
   return (<Paper elevation={3}>
     <Box paddingX={2} paddingY={1} marginY={1}>
+      {
+        params.entry.suggestions.length > 0 && ! params.isFirst
+          ? (
+            <Stack alignItems="end">
+              <IconButton onClick={handleMenuClick}>
+                <MoreVert />
+              </IconButton>
+              {
+                params.isLatest
+                  ? (
+                    <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
+                      <MenuItem onClick={() => onMenuResetTo(params.entryIndex - 1)}>
+                        <ListItemIcon>
+                          <Undo />
+                        </ListItemIcon>
+                        <ListItemText>Undo</ListItemText>
+                      </MenuItem>
+                      <MenuItem onClick={onMenuRetry}>
+                        <ListItemIcon>
+                          <Replay />
+                        </ListItemIcon>
+                        <ListItemText>Retry</ListItemText>
+                      </MenuItem>
+                    </Menu>
+                  )
+                  : (
+                    <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
+                      <MenuItem onClick={() => onMenuResetTo(params.entryIndex)}>
+                        <ListItemIcon>
+                          <SkipPrevious />
+                        </ListItemIcon>
+                        <ListItemText>Reset to Here</ListItemText>
+                      </MenuItem>
+                    </Menu>
+                  )
+              }
+            </Stack>
+          )
+          : params.isFirst ? <div /> : <LinearProgress color="secondary" sx={{ width: "100%" }} />
+      }
       <Fade in={true} timeout={1000}>
-        <Stack direction="row">
-          {
-            params.entry.suggestions.length > 0 && params.isLatest
-              ? (
-                <Fade in={params.isLatest} timeout={1000}>
-                  <List style={{ "width": "100%" }}>
-                    {
-                      params.entry.suggestions.map((suggestion, suggestionIndex) => (
-                        <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
-                          <ListItemAvatar>
-                            <Avatar>
-                              <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
-                                {
-                                  suggestionIndex === 0 ? <LooksOneOutlined /> : (suggestionIndex === 1 ? <LooksTwoOutlined /> : <Looks3Outlined />)
-                                }
-                              </IconButton>
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={suggestion.summary} />
-                        </ListItem>
-                      ))
-                    }
-                  </List>
-                </Fade>
-              )
-              : <div />
-          }
-          {
-            params.entry.suggestions.length > 0 && params.isLatest
-              ? (
-                <Fade in={params.isLatest} timeout={1000}>
-                  <Stack justifyContent="center" alignItems="center" spacing={3} visibility={!params.isFirst && params.isLatest ? "visible" : "hidden"}>
-                    <IconButton aria-label="undo" onClick={params.onUndo}>
-                      <Undo />
-                    </IconButton>
-                    <IconButton aria-label="retry" onClick={params.onRetry}>
-                      <Replay />
-                    </IconButton>
-                  </Stack>
-                </Fade>
-              )
-              : (params.entry.suggestions.length === 0 ? <LinearProgress color="secondary" sx={{ width: "100%" }} /> : <div />)
-          }
-        </Stack>
+        {
+          params.entry.suggestions.length > 0 && params.isLatest
+            ? (
+              <Fade in={params.isLatest} timeout={1000}>
+                <List style={{ "width": "100%" }}>
+                  {
+                    params.entry.suggestions.map((suggestion, suggestionIndex) => (
+                      <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
+                        <ListItemAvatar>
+                          <Avatar>
+                            <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                              {
+                                suggestionIndex === 0 ? <LooksOneOutlined /> : <LooksTwoOutlined />
+                              }
+                            </IconButton>
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText primary={suggestion.summary} />
+                      </ListItem>
+                    ))
+                  }
+                </List>
+              </Fade>
+            )
+            : <div />
+        }
       </Fade>
       {
         !params.isLatest || reveal // wait until reveal is set by useEffect (prevent flashing)
@@ -173,7 +216,7 @@ export default function Entry(params: EntryParams) {
                       <p key={lineIndex}>{line}</p>
                       <Stack>
                         <Fade in={true} timeout={2000}>
-                          <img src={imagePlacements[lineIndex]} />
+                          <img src={imagePlacements[lineIndex]} alt="" />
                         </Fade>
                       </Stack>
                     </div>

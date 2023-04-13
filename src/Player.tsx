@@ -100,43 +100,56 @@ export default function Player() {
 
   const onChooseSuggestion = useCallback((index: number) => {
     const lastIndex = history.length - 1;
-    const args = {
-      'text': history[lastIndex].suggestions[index].text,
-    };
-    fetchJSON("https://api.hooloovoo.ai/imagine", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(args)
-    })
-      .catch(err => setErrorMessage(err.toString()))
-      .then(data => {
-        setHistory((prev) => {
-          if (data.audio !== undefined && data.audio.url.length > 0 && data.audio.duration > 0) {
-            prev[lastIndex].revealDuration = Math.floor(data.audio.duration * 1000);
-            prev[lastIndex].audio = data.audio;
-            setAudioSrc(data.audio.url);
-          } else {
-            prev[lastIndex].revealDuration = DEFAULT_REVEAL_DURATION;
-          }
-          prev[lastIndex].images = data.images;
-          return [...prev];
+    if (history[lastIndex].chosenSuggestion !== index) {
+      const args = {
+        'text': history[lastIndex].suggestions[index].text,
+      };
+      fetchJSON("https://api.hooloovoo.ai/imagine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(args)
+      })
+        .catch(err => setErrorMessage(err.toString()))
+        .then(data => {
+          if (!data)
+            return;
+          setHistory((prev) => {
+            if (data.audio !== undefined && data.audio.url.length > 0 && data.audio.duration > 0) {
+              prev[lastIndex].revealDuration = Math.floor(data.audio.duration * 1000);
+              prev[lastIndex].audio = data.audio;
+              setAudioSrc(data.audio.url);
+            } else {
+              prev[lastIndex].revealDuration = DEFAULT_REVEAL_DURATION;
+            }
+            prev[lastIndex].images = data.images;
+            return [...prev];
+          });
         });
+      setHistory((prev) => {
+        const last = prev[lastIndex];
+        last.text = last.suggestions[index].text;
+        last.lines = last.text.split("\n");
+        last.revealDuration = undefined;
+        last.didReveal = false;
+        last.audio = undefined;
+        last.images = undefined;
+        last.chosenSuggestion = index;
+        last.editing = false;
+        return [...prev];
       });
-    setHistory((prev) => {
-      const last = prev[lastIndex];
-      last.text = last.suggestions[index].text;
-      last.lines = last.text.split("\n");
-      last.revealDuration = undefined;
-      last.chosenSuggestion = index;
-      last.editing = false;
-      return [...prev];
-    });
+    } else {
+      setHistory((prev) => {
+        const last = prev[lastIndex];
+        last.editing = false;
+        return [...prev];
+      });
+    }
     suggest(false);
   }, [suggest, history]);
 
-  const onUndo = useCallback(() => {
+  const onResetTo = useCallback((index: number) => {
     setHistory((prev) => {
-      prev.pop();
+      prev.splice(index + 1);
       prev[prev.length - 1].editing = true;
       return [...prev];
     });
@@ -157,7 +170,16 @@ export default function Player() {
           {
             history ?
               history.map((entry, entryIndex) => (
-                <Entry entry={entry} isFirst={entryIndex === 0} isLatest={entryIndex === history.length - 1} onChooseSuggestion={onChooseSuggestion} onUndo={onUndo} onRetry={onRetry} doScrolldown={doScrolldown} />
+                <Entry 
+                  entry={entry}
+                  isFirst={entryIndex === 0}
+                  isLatest={entryIndex === history.length - 1}
+                  entryIndex={entryIndex}
+                  onChooseSuggestion={onChooseSuggestion}
+                  onResetTo={onResetTo}
+                  onRetry={onRetry}
+                  doScrolldown={doScrolldown}
+                />
               )) : <div />
           }
           <div key="scroll" ref={scrollIntoViewRef}></div>
