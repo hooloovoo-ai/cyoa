@@ -1,6 +1,6 @@
-import { LooksOneOutlined, LooksTwoOutlined, MoreVert, Replay, SkipPrevious, Undo } from "@mui/icons-material";
-import { Avatar, Box, Fade, IconButton, LinearProgress, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { Check, Close, EditOutlined, LooksOneOutlined, LooksTwoOutlined, MoreVert, Replay, SkipPrevious, Undo } from "@mui/icons-material";
+import { Avatar, Box, Dialog, DialogActions, DialogContent, DialogTitle, Fade, IconButton, LinearProgress, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack, TextField, useMediaQuery, useTheme } from "@mui/material";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { History } from "./types";
 
 export interface EntryParams {
@@ -11,6 +11,7 @@ export interface EntryParams {
   onChooseSuggestion: (index: number) => void,
   onResetTo: (index: number) => void,
   onRetry: () => void,
+  onEdit: (text: string) => void,
   doScrolldown: () => void,
 }
 
@@ -28,8 +29,7 @@ export default function Entry(params: EntryParams) {
       params.entry.revealDuration === undefined ||
       !params.isLatest ||
       params.entry.didReveal ||
-      params.entry.chosenSuggestion === undefined ||
-      params.entry.chosenSuggestion === -1) {
+      params.entry.chosenSuggestion === undefined) {
       return;
     }
     setReveal({
@@ -93,13 +93,13 @@ export default function Entry(params: EntryParams) {
     setImagePlacements(ret);
   }, [params.entry.images, params.entry.lines]);
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openMenu = Boolean(anchorEl);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchorEl);
   const handleMenuClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+    setMenuAnchorEl(event.currentTarget);
   }, []);
   const handleMenuClose = useCallback(() => {
-    setAnchorEl(null);
+    setMenuAnchorEl(null);
   }, []);
   const onMenuResetTo = useCallback((index: number) => {
     handleMenuClose();
@@ -109,6 +109,22 @@ export default function Entry(params: EntryParams) {
     handleMenuClose();
     params.onRetry();
   }, [params, handleMenuClose]);
+
+  const theme = useTheme();
+  const dialogFullscreen = useMediaQuery(theme.breakpoints.down('md'));
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [pendingText, setPendingText] = useState("");
+  const textField = useRef<HTMLTextAreaElement | null>(null);
+  const onDialogClose = useCallback(() => {
+    if (textField.current)
+      setPendingText(textField.current.value);
+    setDialogOpen(false);
+  }, [textField]);
+  const onDialogAccept = useCallback(() => {
+    if (textField.current)
+      params.onEdit(textField.current.value);
+    onDialogClose();
+  }, [params, onDialogClose]);
 
   let linesToShow = params.entry.lines;
   let unfaded = "";
@@ -138,7 +154,7 @@ export default function Entry(params: EntryParams) {
   return (<Paper elevation={3}>
     <Box paddingX={2} paddingY={1} marginY={1}>
       {
-        params.entry.suggestions.length > 0 && ! params.isFirst
+        params.entry.suggestions.length > 0 && !params.isFirst
           ? (
             <Stack alignItems="end">
               <IconButton onClick={handleMenuClick}>
@@ -147,7 +163,7 @@ export default function Entry(params: EntryParams) {
               {
                 params.isLatest
                   ? (
-                    <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
+                    <Menu anchorEl={menuAnchorEl} open={menuOpen} onClose={handleMenuClose}>
                       <MenuItem onClick={() => onMenuResetTo(params.entryIndex - 1)}>
                         <ListItemIcon>
                           <Undo />
@@ -163,7 +179,7 @@ export default function Entry(params: EntryParams) {
                     </Menu>
                   )
                   : (
-                    <Menu anchorEl={anchorEl} open={openMenu} onClose={handleMenuClose}>
+                    <Menu anchorEl={menuAnchorEl} open={menuOpen} onClose={handleMenuClose}>
                       <MenuItem onClick={() => onMenuResetTo(params.entryIndex)}>
                         <ListItemIcon>
                           <SkipPrevious />
@@ -188,7 +204,7 @@ export default function Entry(params: EntryParams) {
                       <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
                         <ListItemAvatar>
                           <Avatar>
-                            <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                            <IconButton disabled={params.entry.chosenSuggestion !== undefined} onClick={() => params.onChooseSuggestion(suggestionIndex)}>
                               {
                                 suggestionIndex === 0 ? <LooksOneOutlined /> : <LooksTwoOutlined />
                               }
@@ -199,6 +215,16 @@ export default function Entry(params: EntryParams) {
                       </ListItem>
                     ))
                   }
+                  <ListItem key={-1} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && -1 !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <IconButton disabled={params.entry.chosenSuggestion !== undefined} onClick={() => setDialogOpen(true)}>
+                          <EditOutlined />
+                        </IconButton>
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Write your own!" />
+                  </ListItem>
                 </List>
               </Fade>
             )
@@ -243,5 +269,19 @@ export default function Entry(params: EntryParams) {
           : <div />
       }
     </Box>
+    <Dialog open={dialogOpen} fullScreen={dialogFullscreen} fullWidth>
+      <DialogTitle>Write your own story</DialogTitle>
+      <DialogContent>
+        <TextField inputRef={textField} autoFocus multiline fullWidth margin="dense" variant="standard" defaultValue={pendingText} />
+      </DialogContent>
+      <DialogActions>
+        <IconButton onClick={onDialogAccept}>
+          <Check />
+        </IconButton>
+        <IconButton onClick={onDialogClose}>
+          <Close />
+        </IconButton>
+      </DialogActions>
+    </Dialog>
   </Paper>);
 }

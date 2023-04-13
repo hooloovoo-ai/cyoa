@@ -102,7 +102,7 @@ export default function Player() {
     const lastIndex = history.length - 1;
     if (history[lastIndex].chosenSuggestion !== index) {
       const args = {
-        'text': history[lastIndex].suggestions[index].text,
+        'text': index === -1 ? history[lastIndex].text : history[lastIndex].suggestions[index].text,
       };
       fetchJSON("https://api.hooloovoo.ai/imagine", {
         method: "POST",
@@ -127,7 +127,8 @@ export default function Player() {
         });
       setHistory((prev) => {
         const last = prev[lastIndex];
-        last.text = last.suggestions[index].text;
+        if (index >= 0 && index < last.suggestions.length)
+          last.text = last.suggestions[index].text;
         last.lines = last.text.split("\n");
         last.revealDuration = undefined;
         last.didReveal = false;
@@ -163,6 +164,11 @@ export default function Player() {
     });
   }, [suggest]);
 
+  const onEdit = useCallback((text: string) => {
+    history[history.length - 1].text = text;
+    onChooseSuggestion(-1);
+  }, [history, onChooseSuggestion]);
+
   return (
     <Container maxWidth="md">
       <Box height="100vh" display="flex" flexDirection="column">
@@ -178,6 +184,7 @@ export default function Player() {
                   onChooseSuggestion={onChooseSuggestion}
                   onResetTo={onResetTo}
                   onRetry={onRetry}
+                  onEdit={onEdit}
                   doScrolldown={doScrolldown}
                 />
               )) : <div />
