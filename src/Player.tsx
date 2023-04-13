@@ -27,15 +27,16 @@ export default function Player() {
     return [{
       text: "",
       lines: [],
-      narrationDuration: 0,
-      narrationURL: undefined,
+      revealDuration: 0,
       suggestions: INITIAL_PROMPTS.map(prompt => ({
         text: prompt.text,
         summary: `${prompt.genre}: ${prompt.title}`
       })),
       didReveal: false,
       editing: false,
-      chosenSuggestion: undefined
+      chosenSuggestion: undefined,
+      audio: undefined,
+      images: undefined
     }]
   });
 
@@ -84,12 +85,13 @@ export default function Player() {
             return [...prev, {
               text: "",
               lines: [],
-              narrationDuration: undefined,
-              narrationURL: undefined,
+              revealDuration: undefined,
               suggestions: suggestions,
               didReveal: false,
               editing: false,
-              chosenSuggestion: undefined
+              chosenSuggestion: undefined,
+              audio: undefined,
+              images: undefined
             }];
           }
         });
@@ -109,12 +111,14 @@ export default function Player() {
       .catch(err => setErrorMessage(err.toString()))
       .then(data => {
         setHistory((prev) => {
-          if (data.audio_url.length > 0 && data.audio_duration > 0) {
-            prev[lastIndex].narrationDuration = Math.floor(data.audio_duration * 1000);
-            setAudioSrc(data.audio_url);
+          if (data.audio !== undefined && data.audio.url.length > 0 && data.audio.duration > 0) {
+            prev[lastIndex].revealDuration = Math.floor(data.audio.duration * 1000);
+            prev[lastIndex].audio = data.audio;
+            setAudioSrc(data.audio.url);
           } else {
-            prev[lastIndex].narrationDuration = DEFAULT_REVEAL_DURATION;
+            prev[lastIndex].revealDuration = DEFAULT_REVEAL_DURATION;
           }
+          prev[lastIndex].images = data.images;
           return [...prev];
         });
       });
@@ -122,7 +126,7 @@ export default function Player() {
       const last = prev[lastIndex];
       last.text = last.suggestions[index].text;
       last.lines = last.text.split("\n");
-      last.narrationDuration = undefined;
+      last.revealDuration = undefined;
       last.chosenSuggestion = index;
       last.editing = false;
       return [...prev];

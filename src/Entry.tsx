@@ -1,4 +1,4 @@
-import { CheckCircle, Looks3Outlined, LooksOneOutlined, LooksTwoOutlined, Replay, Undo } from "@mui/icons-material";
+import { Looks3Outlined, LooksOneOutlined, LooksTwoOutlined, Replay, Undo } from "@mui/icons-material";
 import { Avatar, Box, Fade, IconButton, LinearProgress, List, ListItem, ListItemAvatar, ListItemText, Paper, Stack } from "@mui/material";
 import { useEffect, useState } from "react";
 import { History } from "./types";
@@ -23,17 +23,17 @@ export default function Entry(params: EntryParams) {
   const [reveal, setReveal] = useState<Reveal>();
 
   useEffect(() => {
-    if (params.entry.narrationDuration === undefined || !params.isLatest || params.entry.didReveal || params.entry.chosenSuggestion === undefined || params.entry.chosenSuggestion === -1) {
+    if (params.entry.revealDuration === undefined || !params.isLatest || params.entry.didReveal || params.entry.chosenSuggestion === undefined || params.entry.chosenSuggestion === -1) {
       console.log("Awaiting reveal")
       return;
     }
     console.log("Starting reveal")
     setReveal({
       start: Date.now(),
-      end: Date.now() + params.entry.narrationDuration,
-      percent: params.entry.narrationDuration === 0 ? 1 : 0,
+      end: Date.now() + params.entry.revealDuration,
+      percent: params.entry.revealDuration === 0 ? 1 : 0,
     });
-  }, [params.entry.narrationDuration, params.isLatest, params.entry.didReveal, params.entry.chosenSuggestion]);
+  }, [params.entry.revealDuration, params.isLatest, params.entry.didReveal, params.entry.chosenSuggestion]);
 
   useEffect(() => {
     if (!reveal)
@@ -55,6 +55,39 @@ export default function Entry(params: EntryParams) {
       params.doScrolldown();
     }
   }, [reveal, params]);
+
+  const [imagePlacements, setImagePlacements] = useState<(string | undefined)[]>();
+
+  useEffect(() => {
+    if (params.entry.images === undefined || params.entry.images.length === 0 || params.entry.lines === undefined || params.entry.lines.length === 0)
+      return;
+    const placeEvery = Math.max(1, Math.floor(params.entry.lines.length / params.entry.images.length));
+    const ret = [];
+    let j = 0;
+    let k = 0;
+    for (let i = 0; i < params.entry.lines.length; ++i) {
+      if (k >= placeEvery) {
+        ret.push(params.entry.images[j]);
+        j += 1;
+        k = 0;
+      }
+      else {
+        k += 1;
+        ret.push(undefined);
+      }
+    }
+    let i = params.entry.lines.length - 1;
+    while (j < params.entry.images.length) {
+      if (ret[i] === undefined) {
+        ret[i] = params.entry.images[j];
+        j += 1;
+      }
+      i -= 1;
+      if (i < 0)
+        break;
+    }
+    setImagePlacements(ret);
+  }, [params.entry.images, params.entry.lines]);
 
   let linesToShow = params.entry.lines;
   let unfaded = "";
@@ -93,7 +126,6 @@ export default function Entry(params: EntryParams) {
                     {
                       params.entry.suggestions.map((suggestion, suggestionIndex) => (
                         <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
-
                           <ListItemAvatar>
                             <Avatar>
                               <IconButton onClick={() => params.onChooseSuggestion(suggestionIndex)}>
@@ -132,7 +164,23 @@ export default function Entry(params: EntryParams) {
       </Fade>
       {
         !params.isLatest || reveal // wait until reveal is set by useEffect (prevent flashing)
-          ? linesToShow.map((line, lineIndex) => (<p key={lineIndex}>{line}</p>))
+          ? linesToShow.map((line, lineIndex) => (
+            imagePlacements !== undefined
+              ? (
+                imagePlacements[lineIndex]
+                  ? (
+                    <div>
+                      <p key={lineIndex}>{line}</p>
+                      <Fade in={true} timeout={2000}>
+                        <img src={imagePlacements[lineIndex]} />
+                      </Fade>
+                    </div>
+                  )
+                  : <p key={lineIndex}>{line}</p>
+              )
+              : <p key={lineIndex}>{line}</p>
+          )
+          )
           : (params.entry.chosenSuggestion !== undefined ? <LinearProgress color="secondary" sx={{ width: "100%" }} /> : <div />)
       }
       {

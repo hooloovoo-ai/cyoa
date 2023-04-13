@@ -3,15 +3,21 @@ export interface Suggestion {
   summary: string
 }
 
+export interface AudioInformation {
+  url: string,
+  duration: number
+}
+
 export interface History {
   text: string,
   lines: string[],
   suggestions: Suggestion[],
-  narrationDuration: number | undefined,
-  narrationURL: string | undefined,
+  revealDuration: number | undefined,
   didReveal: boolean,
   editing: boolean,
   chosenSuggestion: number | undefined,
+  audio: AudioInformation | undefined,
+  images: string[] | undefined
 }
 
 export interface InitialPrompt {
