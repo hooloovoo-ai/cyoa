@@ -11,8 +11,7 @@ export interface EntryParams {
   onChooseSuggestion: (index: number) => void,
   onResetTo: (index: number) => void,
   onRetry: () => void,
-  onEdit: (text: string) => void,
-  doScrolldown: () => void,
+  onEdit: (text: string) => void
 }
 
 interface Reveal {
@@ -40,6 +39,16 @@ export default function Entry(params: EntryParams) {
       lastScrollDown: Date.now(),
     });
   }, [params.entry.revealDuration, params.isLatest, params.entry.didReveal, params.entry.chosenSuggestion, params.entryIndex]);
+
+  const scrollIntoViewRef = useRef<HTMLDivElement>(null);
+  const performScrolldown = useRef(false);
+  const doScrolldown = useCallback(() => setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 1), []);
+  useEffect(() => {
+    if (performScrolldown.current) {
+      doScrolldown();
+    }
+    performScrolldown.current = true;
+  }, [doScrolldown]);
 
   const [enableAutoScroll, setEnableAutoScroll] = useState(true);
   const [atBottom, setAtBottom] = useState(true);
@@ -83,7 +92,7 @@ export default function Entry(params: EntryParams) {
           let lastScrollDown = prev.lastScrollDown;
           if (Date.now() - lastScrollDown >= 500) {
             if (enableAutoScroll) {
-              params.doScrolldown();
+              doScrolldown();
               lastScrollDown = Date.now();
             }
           }
@@ -96,7 +105,7 @@ export default function Entry(params: EntryParams) {
         });
       }, 33);
     }
-  }, [reveal, params, enableAutoScroll]);
+  }, [reveal, doScrolldown, enableAutoScroll]);
 
   const [imagePlacements, setImagePlacements] = useState<(string | undefined)[]>();
 
@@ -184,8 +193,12 @@ export default function Entry(params: EntryParams) {
       const unfadedLength = fadeLine.length - charsToFade;
       unfaded = fadeLine.substring(0, unfadedLength);
       fadeChars = fadeLine.substring(unfadedLength).split("");
-    } else {
+    } else if (!params.entry.didReveal) {
       params.entry.didReveal = true;
+      // hack for showing image at the end that might not be scrolled to
+      if (enableAutoScroll) {
+        setTimeout(doScrolldown, 500);
+      }
     }
   }
 
@@ -307,6 +320,7 @@ export default function Entry(params: EntryParams) {
           : <div />
       }
     </Box>
+    <div key="scroll" ref={scrollIntoViewRef}></div>
     <Dialog open={dialogOpen} fullScreen={dialogFullscreen} fullWidth>
       <DialogTitle>Write your own story</DialogTitle>
       <DialogContent>

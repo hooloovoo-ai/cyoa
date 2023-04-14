@@ -40,17 +40,6 @@ export default function Player() {
     }]
   });
 
-  const scrollIntoViewRef = useRef<HTMLDivElement>(null);
-  const performScrolldown = useRef(false);
-  const doScrolldown = useCallback(() => setTimeout(() => scrollIntoViewRef?.current?.scrollIntoView({ behavior: "auto", block: "nearest" }), 1), []);
-  useEffect(() => {
-    if (performScrolldown.current) {
-      doScrolldown();
-    }
-    performScrolldown.current = true;
-  }, [history, doScrolldown]);
-
-
   const id = useMemo(() => Date.now().toString(), []);
   const suggest = useCallback((retry: boolean) => {
     const args = {
@@ -185,11 +174,9 @@ export default function Player() {
                   onResetTo={onResetTo}
                   onRetry={onRetry}
                   onEdit={onEdit}
-                  doScrolldown={doScrolldown}
                 />
               )) : <div />
           }
-          <div key="scroll" ref={scrollIntoViewRef}></div>
         </Box>
         <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} autoPlay />
         <Snackbar open={errorMessage !== undefined} autoHideDuration={10000} onClose={handleErrorClose}>
