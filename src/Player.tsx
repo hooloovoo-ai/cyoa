@@ -4,13 +4,19 @@ import ReactAudioPlayer from "react-audio-player";
 import { fetchJSON } from "./util";
 import Entry from "./Entry";
 import { History, InitialPrompt, Suggestion } from "./types";
-import { default as InitialPrompts } from "./prompts.json"
+import { default as InitialPrompts } from "./prompts.json";
 
 const LISTEN_INTERVAL = 33;
 const DEFAULT_REVEAL_DURATION = 45 * 1000;
 const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
-export default function Player() {
+export interface PlayerParams {
+  playMode: boolean,
+  start?: History[],
+  onHistoryChange: ((story: History[]) => void)
+}
+
+export default function Player(params: PlayerParams) {
 
   const [errorMessage, setErrorMessage] = useState<string>();
   const handleErrorClose = useCallback((event?: React.SyntheticEvent | Event, reason?: string) => {
@@ -23,8 +29,9 @@ export default function Player() {
   const player = useRef<ReactAudioPlayer>(null);
   const [audioSrc, setAudioSrc] = useState<string>();
 
-  const [history, setHistory] = useState<History[]>(() => {
-    return [{
+  const [history, setHistory] = useState<History[]>([]);
+  useEffect(() => {
+    setHistory(params.start ? params.start : [{
       text: "",
       lines: [],
       revealDuration: 0,
@@ -37,8 +44,8 @@ export default function Player() {
       chosenSuggestion: undefined,
       audio: undefined,
       images: undefined
-    }]
-  });
+    }]);
+  }, [params.start]);
 
   const id = useMemo(() => Date.now().toString(), []);
   const suggest = useCallback((retry: boolean) => {

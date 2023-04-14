@@ -25,3 +25,10 @@ export interface InitialPrompt {
   genre: string,
   text: string
 }
+
+export interface Story {
+  title: string,
+  id: string,
+  lastEdited?: number,
+  data: History[]
+}

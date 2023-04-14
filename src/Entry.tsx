@@ -244,44 +244,44 @@ export default function Entry(params: EntryParams) {
           )
           : params.isFirst ? <div /> : <LinearProgress color="secondary" sx={{ width: "100%" }} />
       }
-      <Fade in={true} timeout={1000}>
+      <List style={{ "width": "100%" }}>
         {
-          params.entry.suggestions.length > 0 && params.isLatest
+          params.entry.suggestions.map((suggestion, suggestionIndex) => (
+            params.entry.chosenSuggestion === suggestionIndex || params.isLatest
+              ? (
+                <ListItem key={suggestionIndex} sx={{ "opacity": !params.isLatest || (params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion) ? "30%" : "100%" }}>
+                  <ListItemAvatar>
+                    <Avatar>
+                      <IconButton disabled={params.entry.chosenSuggestion !== undefined || !params.isLatest} onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                        {
+                          suggestionIndex === 0 ? <LooksOneOutlined /> : <LooksTwoOutlined />
+                        }
+                      </IconButton>
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText primary={suggestion.summary} />
+                </ListItem>
+              )
+              : <div />
+          ))
+        }
+        {
+          params.entry.chosenSuggestion === -1 || (params.isLatest && params.entry.suggestions.length > 0)
             ? (
-              <Fade in={params.isLatest} timeout={1000}>
-                <List style={{ "width": "100%" }}>
-                  {
-                    params.entry.suggestions.map((suggestion, suggestionIndex) => (
-                      <ListItem key={suggestionIndex} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <IconButton disabled={params.entry.chosenSuggestion !== undefined} onClick={() => params.onChooseSuggestion(suggestionIndex)}>
-                              {
-                                suggestionIndex === 0 ? <LooksOneOutlined /> : <LooksTwoOutlined />
-                              }
-                            </IconButton>
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={suggestion.summary} />
-                      </ListItem>
-                    ))
-                  }
-                  <ListItem key={-1} sx={{ "opacity": params.entry.chosenSuggestion !== undefined && -1 !== params.entry.chosenSuggestion ? "30%" : "100%" }}>
-                    <ListItemAvatar>
-                      <Avatar>
-                        <IconButton disabled={params.entry.chosenSuggestion !== undefined} onClick={() => setDialogOpen(true)}>
-                          <EditOutlined />
-                        </IconButton>
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary="Write your own!" />
-                  </ListItem>
-                </List>
-              </Fade>
+              <ListItem key={-1} sx={{ "opacity": !params.isLatest || (params.entry.chosenSuggestion !== undefined && -1 !== params.entry.chosenSuggestion) ? "30%" : "100%" }}>
+                <ListItemAvatar>
+                  <Avatar>
+                    <IconButton disabled={params.entry.chosenSuggestion !== undefined || !params.isLatest} onClick={() => setDialogOpen(true)}>
+                      <EditOutlined />
+                    </IconButton>
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary="Write your own!" />
+              </ListItem>
             )
             : <div />
         }
-      </Fade>
+      </List>
       {
         !params.isLatest || reveal // wait until reveal is set by useEffect (prevent flashing)
           ? linesToShow.map((line, lineIndex) => (
