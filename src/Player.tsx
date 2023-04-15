@@ -1,4 +1,4 @@
-import { Alert, Box, Container, Snackbar } from "@mui/material";
+import { Alert, Box, Snackbar } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactAudioPlayer from "react-audio-player";
 import { fetchJSON } from "./util";
@@ -175,7 +175,6 @@ export default function Player(params: PlayerParams) {
   }, [history, params]);
 
   return (
-    <Container maxWidth="md">
       <Box display="flex" flexDirection="column">
         <Box flex={1} margin={2}>
           {
@@ -202,6 +201,5 @@ export default function Player(params: PlayerParams) {
           </Alert>
         </Snackbar>
       </Box>
-    </Container>
   );
 }

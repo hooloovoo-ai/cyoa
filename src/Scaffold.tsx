@@ -3,7 +3,7 @@ import Player from "./Player";
 import { useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { History, Story } from "./types";
-import { Box, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, styled, useTheme } from "@mui/material";
+import { Box, Container, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, styled, useTheme } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import { ChevronLeft, ChevronRight, Menu } from "@mui/icons-material";
 
@@ -133,7 +133,7 @@ export default function Scaffold() {
     story.data = history;
     localStorage.setItem("library", JSON.stringify(library));
   }, [library, id]);
-  
+
   const onSelectFromLibrary = useCallback((index: number) => {
     setTitle(library[index].title);
     setId(library[index].id);
@@ -141,62 +141,64 @@ export default function Scaffold() {
   }, [library]);
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar position="fixed" open={open}>
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={{ mr: 2, ...(open && { display: 'none' }) }}
-          >
-            <Menu />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            {title ? title : "Choose Your Own Adventure"}
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
+    <Container maxWidth="md">
+      <Box sx={{ display: 'flex' }}>
+        <CssBaseline />
+        <AppBar position="fixed" open={open}>
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              edge="start"
+              sx={{ mr: 2, ...(open && { display: 'none' }) }}
+            >
+              <Menu />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div">
+              {title ? title : "Choose Your Own Adventure"}
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <Drawer
+          sx={{
             width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={open}
-      >
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'ltr' ? <ChevronLeft /> : <ChevronRight />}
-          </IconButton>
-        </DrawerHeader>
-        <Divider />
-        <List>
-          {
-            library.map((story, storyIndex) => (
-              <ListItem key={story.id} disablePadding>
-                <ListItemButton onClick={() => onSelectFromLibrary(storyIndex)}>
-                  <ListItemText
-                    primary={story.title}
-                    secondary={`Edited: ${new Date(story.lastEdited).toLocaleTimeString()} ${new Date(story.lastEdited).toLocaleDateString()}`}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))
-          }
-        </List>
-      </Drawer>
-      <Main open={open}>
-        <DrawerHeader />
-        <Player playMode={playMode} onHistoryChange={onHistoryChange} start={playerStart} />
-      </Main>
-    </Box>
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+            },
+          }}
+          variant="persistent"
+          anchor="left"
+          open={open}
+        >
+          <DrawerHeader>
+            <IconButton onClick={handleDrawerClose}>
+              {theme.direction === 'ltr' ? <ChevronLeft /> : <ChevronRight />}
+            </IconButton>
+          </DrawerHeader>
+          <Divider />
+          <List>
+            {
+              library.map((story, storyIndex) => (
+                <ListItem key={story.id} disablePadding>
+                  <ListItemButton onClick={() => onSelectFromLibrary(storyIndex)}>
+                    <ListItemText
+                      primary={story.title}
+                      secondary={`Edited: ${new Date(story.lastEdited).toLocaleTimeString()} ${new Date(story.lastEdited).toLocaleDateString()}`}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))
+            }
+          </List>
+        </Drawer>
+        <Main open={open}>
+          <DrawerHeader />
+          <Player playMode={playMode} onHistoryChange={onHistoryChange} start={playerStart} />
+        </Main>
+      </Box>
+    </Container>
   );
 }
