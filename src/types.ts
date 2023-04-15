@@ -29,6 +29,6 @@ export interface InitialPrompt {
 export interface Story {
   title: string,
   id: string,
-  lastEdited?: number,
+  lastEdited: number,
   data: History[]
 }

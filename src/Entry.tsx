@@ -11,7 +11,8 @@ export interface EntryParams {
   onChooseSuggestion: (index: number) => void,
   onResetTo: (index: number) => void,
   onRetry: () => void,
-  onEdit: (text: string) => void
+  onEdit: (entryIndex: number, text: string) => void,
+  onRevealFinished: (entryIndex: number) => void,
 }
 
 interface Reveal {
@@ -169,7 +170,7 @@ export default function Entry(params: EntryParams) {
   }, [textField]);
   const onDialogAccept = useCallback(() => {
     if (textField.current)
-      params.onEdit(textField.current.value);
+      params.onEdit(params.entryIndex, textField.current.value);
     onDialogClose();
   }, [params, onDialogClose]);
 

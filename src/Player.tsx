@@ -31,7 +31,11 @@ export default function Player(params: PlayerParams) {
 
   const [history, setHistory] = useState<History[]>([]);
   useEffect(() => {
-    setHistory(params.start ? params.start : [{
+    params.onHistoryChange(history);
+  }, [history, params]);
+
+  useEffect(() => {
+    setHistory(params.start && params.start.length > 0 ? params.start : [{
       text: "",
       lines: [],
       revealDuration: 0,
@@ -160,19 +164,24 @@ export default function Player(params: PlayerParams) {
     });
   }, [suggest]);
 
-  const onEdit = useCallback((text: string) => {
-    history[history.length - 1].text = text;
+  const onEdit = useCallback((index: number, text: string) => {
+    history[index].text = text;
     onChooseSuggestion(-1);
   }, [history, onChooseSuggestion]);
 
+  const onRevealFinished = useCallback((index: number) => {
+    history[index].didReveal = true;
+    params.onHistoryChange(history);
+  }, [history, params]);
+
   return (
     <Container maxWidth="md">
-      <Box height="100vh" display="flex" flexDirection="column">
+      <Box display="flex" flexDirection="column">
         <Box flex={1} margin={2}>
           {
             history ?
               history.map((entry, entryIndex) => (
-                <Entry 
+                <Entry
                   entry={entry}
                   isFirst={entryIndex === 0}
                   isLatest={entryIndex === history.length - 1}
@@ -181,6 +190,7 @@ export default function Player(params: PlayerParams) {
                   onResetTo={onResetTo}
                   onRetry={onRetry}
                   onEdit={onEdit}
+                  onRevealFinished={onRevealFinished}
                 />
               )) : <div />
           }
