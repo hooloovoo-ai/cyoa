@@ -1,11 +1,11 @@
 import { LoaderFunctionArgs, useLoaderData } from "react-router-dom";
 import Player from "./Player";
-import { useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { History, Story } from "./types";
-import { Box, Container, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography, styled, useTheme } from "@mui/material";
+import { Box, Container, CssBaseline, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, MenuItem, Select, SelectChangeEvent, Switch, Toolbar, Typography, styled, useTheme } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { ChevronLeft, ChevronRight, Menu } from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, Delete, Edit, Image, Menu, RecordVoiceOver, } from "@mui/icons-material";
 
 export async function loaderEdit(loaderArgs: LoaderFunctionArgs) {
   return { storyId: loaderArgs.params.story, playMode: false };
@@ -114,6 +114,7 @@ export default function Scaffold() {
     story.lastEdited = Date.now();
     story.data = history;
     localStorage.setItem("library", JSON.stringify(library));
+    setLibrary(library);
   }, [library, id]);
 
   const onSelectFromLibrary = useCallback((index: number) => {
@@ -122,11 +123,22 @@ export default function Scaffold() {
     setPlayerStart(library[index].data);
   }, [library]);
 
+  const [imagineImages, setImagineImages] = useState(2);
+  const onImagineImagesChange = useCallback((event: SelectChangeEvent) => {
+    setImagineImages(parseInt(event.target.value));
+  }, []);
+
+  const [imagineAudio, setImagineAudio] = useState(false);
+  const onImagineAudioChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setImagineAudio(event.target.checked);
+  }, []);
+
+
   return (
     <Container maxWidth="md">
       <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <AppBar position="fixed" open={open}>
+        <AppBar position="fixed" open={open} sx={{ flexGrow: 1 }}>
           <Toolbar>
             <IconButton
               color="inherit"
@@ -140,6 +152,44 @@ export default function Scaffold() {
             <Typography variant="h6" noWrap component="div">
               {title ? title : "Choose Your Own Adventure"}
             </Typography>
+            <IconButton
+              color="inherit"
+              edge="start"
+              sx={{ ml: 3 }}
+            >
+              <Edit />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              edge="start"
+              sx={{ ml: 1 }}
+            >
+              <Delete />
+            </IconButton>
+            <Box sx={{ flexGrow: 1 }} />
+            <FormGroup>
+              <FormControlLabel
+                disabled={true}
+                control={<Switch checked={imagineAudio}
+                onChange={onImagineAudioChange} />}
+                label={<RecordVoiceOver />}
+              />
+            </FormGroup>
+            <FormControl sx={{ml: 1}}>
+              <InputLabel><Image id="images-label"/></InputLabel>
+              <Select
+                labelId="images-label"
+                label={<Image />}
+                value={imagineImages.toString()}
+                onChange={onImagineImagesChange}
+              >
+                <MenuItem value={0}>0</MenuItem>
+                <MenuItem value={1}>1</MenuItem>
+                <MenuItem value={2}>2</MenuItem>
+                <MenuItem value={3}>3</MenuItem>
+                <MenuItem value={4}>4</MenuItem>
+              </Select>
+            </FormControl>
           </Toolbar>
         </AppBar>
         <Drawer
@@ -163,12 +213,12 @@ export default function Scaffold() {
           <Divider />
           <List>
             {
-              library.map((story, storyIndex) => (
+              library.sort((a, b) => b.lastEdited - a.lastEdited).map((story, storyIndex) => (
                 <ListItem key={story.id} disablePadding>
                   <ListItemButton onClick={() => onSelectFromLibrary(storyIndex)}>
                     <ListItemText
                       primary={story.title}
-                      secondary={`Edited: ${new Date(story.lastEdited).toLocaleTimeString()} ${new Date(story.lastEdited).toLocaleDateString()}`}
+                      secondary={`${new Date(story.lastEdited).toLocaleDateString()} ${new Date(story.lastEdited).toLocaleTimeString()}`}
                     />
                   </ListItemButton>
                 </ListItem>
@@ -178,7 +228,13 @@ export default function Scaffold() {
         </Drawer>
       </Box>
       <DrawerHeader />
-      <Player playMode={playMode} onHistoryChange={onHistoryChange} start={playerStart} />
+      <Player
+        playMode={playMode}
+        imagineAudio={imagineAudio}
+        imagineImages={imagineImages}
+        onHistoryChange={onHistoryChange}
+        start={playerStart}
+      />
     </Container>
   );
 }

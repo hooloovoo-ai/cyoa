@@ -12,6 +12,8 @@ const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
 export interface PlayerParams {
   playMode: boolean,
+  imagineAudio: boolean,
+  imagineImages: number,
   start?: History[],
   onHistoryChange: ((story: History[]) => void)
 }
@@ -102,7 +104,9 @@ export default function Player(params: PlayerParams) {
     const lastIndex = history.length - 1;
     if (history[lastIndex].chosenSuggestion !== index) {
       const args = {
-        'text': index === -1 ? history[lastIndex].text : history[lastIndex].suggestions[index].text,
+        text: index === -1 ? history[lastIndex].text : history[lastIndex].suggestions[index].text,
+        images: params.imagineImages,
+        audio: params.imagineAudio,
       };
       fetchJSON("https://api.hooloovoo.ai/imagine", {
         method: "POST",
@@ -146,7 +150,7 @@ export default function Player(params: PlayerParams) {
       });
     }
     suggest(false);
-  }, [suggest, history]);
+  }, [suggest, history, params.imagineAudio, params.imagineImages]);
 
   const onResetTo = useCallback((index: number) => {
     setHistory((prev) => {

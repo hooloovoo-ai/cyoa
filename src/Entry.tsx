@@ -195,7 +195,7 @@ export default function Entry(params: EntryParams) {
       unfaded = fadeLine.substring(0, unfadedLength);
       fadeChars = fadeLine.substring(unfadedLength).split("");
     } else if (!params.entry.didReveal) {
-      params.entry.didReveal = true;
+      params.onRevealFinished(params.entryIndex);
       // hack for showing image at the end that might not be scrolled to
       if (enableAutoScroll) {
         setTimeout(doScrolldown, 500);
