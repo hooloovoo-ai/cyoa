@@ -215,7 +215,7 @@ export default function Scaffold() {
             {
               library.sort((a, b) => b.lastEdited - a.lastEdited).map((story, storyIndex) => (
                 <ListItem key={story.id} disablePadding>
-                  <ListItemButton onClick={() => onSelectFromLibrary(storyIndex)}>
+                  <ListItemButton onClick={() => onSelectFromLibrary(storyIndex)} selected={story.id === id}>
                     <ListItemText
                       primary={story.title}
                       secondary={`${new Date(story.lastEdited).toLocaleDateString()} ${new Date(story.lastEdited).toLocaleTimeString()}`}
