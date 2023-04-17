@@ -3,9 +3,9 @@ import Player from "./Player";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { History, Story } from "./types";
-import { Box, Container, CssBaseline, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, MenuItem, Select, SelectChangeEvent, Switch, Toolbar, Typography, styled, useTheme } from "@mui/material";
+import { Box, Container, CssBaseline, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, Menu, MenuItem, Select, SelectChangeEvent, Switch, Toolbar, Typography, styled, useTheme } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { ChevronLeft, ChevronRight, Delete, Edit, Image, Menu, RecordVoiceOver, } from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, Delete, Edit, Image, Menu as MenuIcon, RecordVoiceOver, Settings, } from "@mui/icons-material";
 
 export async function loaderEdit(loaderArgs: LoaderFunctionArgs) {
   return { storyId: loaderArgs.params.story, playMode: false };
@@ -73,6 +73,8 @@ export default function Scaffold() {
   const [id, setId] = useState(() => uuidv4());
   const [playerStart, setPlayerStart] = useState<History[]>([]);
 
+  const [landing, setLanding] = useState(true);
+
   const [library, setLibrary] = useState<Story[]>([]);
   useEffect(() => {
     const storage = localStorage.getItem("library");
@@ -115,6 +117,7 @@ export default function Scaffold() {
     story.data = history;
     localStorage.setItem("library", JSON.stringify(library));
     setLibrary(library);
+    setLanding(false);
   }, [library, id]);
 
   const onSelectFromLibrary = useCallback((index: number) => {
@@ -133,6 +136,14 @@ export default function Scaffold() {
     setImagineAudio(event.target.checked);
   }, []);
 
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const handleMenuClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  }, []);
+  const handleMenuClose = useCallback(() => {
+    setMenuAnchorEl(null);
+  }, []);
+
 
   return (
     <Container maxWidth="md">
@@ -147,49 +158,77 @@ export default function Scaffold() {
               edge="start"
               sx={{ mr: 2, ...(open && { display: 'none' }) }}
             >
-              <Menu />
+              <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap component="div">
+            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: landing ? 1 : 0 }} textAlign="center">
               {title ? title : "Choose Your Own Adventure"}
             </Typography>
             <IconButton
               color="inherit"
               edge="start"
-              sx={{ ml: 3 }}
+              sx={{ ml: 3, display: landing ? "none" : "block" }}
             >
               <Edit />
             </IconButton>
             <IconButton
               color="inherit"
               edge="start"
-              sx={{ ml: 1 }}
+              sx={{ ml: 1, display: landing ? "none" : "block" }}
             >
               <Delete />
             </IconButton>
-            <Box sx={{ flexGrow: 1 }} />
-            <FormGroup>
-              <FormControlLabel
-                disabled={true}
-                control={<Switch checked={imagineAudio}
-                onChange={onImagineAudioChange} />}
-                label={<RecordVoiceOver />}
-              />
-            </FormGroup>
-            <FormControl sx={{ml: 1}}>
-              <InputLabel><Image id="images-label"/></InputLabel>
-              <Select
-                labelId="images-label"
-                label={<Image />}
-                value={imagineImages.toString()}
-                onChange={onImagineImagesChange}
-              >
-                <MenuItem value={0}>0</MenuItem>
-                <MenuItem value={1}>1</MenuItem>
-                <MenuItem value={2}>2</MenuItem>
-                <MenuItem value={3}>3</MenuItem>
-                <MenuItem value={4}>4</MenuItem>
-              </Select>
-            </FormControl>
+            <Box sx={{ flexGrow: landing ? 0 : 1 }} />
+            <IconButton
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleMenuClick}
+              color="inherit"
+            >
+              <Settings />
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={menuAnchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+              }}
+              open={Boolean(menuAnchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem>
+                <FormGroup>
+                  <FormControlLabel
+                    disabled={true}
+                    control={<Switch checked={imagineAudio}
+                      onChange={onImagineAudioChange} />}
+                    label={<RecordVoiceOver />}
+                  />
+                </FormGroup>
+              </MenuItem>
+              <MenuItem>
+                <FormControl fullWidth>
+                  <InputLabel><Image id="images-label" /></InputLabel>
+                  <Select
+                    labelId="images-label"
+                    label={<Image />}
+                    value={imagineImages.toString()}
+                    onChange={onImagineImagesChange}
+                  >
+                    <MenuItem value={0}>0</MenuItem>
+                    <MenuItem value={1}>1</MenuItem>
+                    <MenuItem value={2}>2</MenuItem>
+                    <MenuItem value={3}>3</MenuItem>
+                    <MenuItem value={4}>4</MenuItem>
+                  </Select>
+                </FormControl>
+              </MenuItem>
+            </Menu>
           </Toolbar>
         </AppBar>
         <Drawer
