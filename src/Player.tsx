@@ -170,7 +170,12 @@ export default function Player(params: PlayerParams) {
 
   const onEdit = useCallback((index: number, text: string) => {
     history[index].text = text;
-    onChooseSuggestion(-1);
+    if (index === history.length - 1)
+      onChooseSuggestion(-1);
+    else {
+      history[index].lines = text.split("\n");
+      params.onHistoryChange(history);
+    }
   }, [history, onChooseSuggestion]);
 
   const onRevealFinished = useCallback((index: number) => {
@@ -179,31 +184,31 @@ export default function Player(params: PlayerParams) {
   }, [history, params]);
 
   return (
-      <Box display="flex" flexDirection="column">
-        <Box flex={1} margin={2}>
-          {
-            history ?
-              history.map((entry, entryIndex) => (
-                <Entry
-                  entry={entry}
-                  isFirst={entryIndex === 0}
-                  isLatest={entryIndex === history.length - 1}
-                  entryIndex={entryIndex}
-                  onChooseSuggestion={onChooseSuggestion}
-                  onResetTo={onResetTo}
-                  onRetry={onRetry}
-                  onEdit={onEdit}
-                  onRevealFinished={onRevealFinished}
-                />
-              )) : <div />
-          }
-        </Box>
-        <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} autoPlay />
-        <Snackbar open={errorMessage !== undefined} autoHideDuration={10000} onClose={handleErrorClose}>
-          <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
-            {errorMessage}
-          </Alert>
-        </Snackbar>
+    <Box display="flex" flexDirection="column">
+      <Box flex={1} margin={2}>
+        {
+          history ?
+            history.map((entry, entryIndex) => (
+              <Entry
+                entry={entry}
+                isFirst={entryIndex === 0}
+                isLatest={entryIndex === history.length - 1}
+                entryIndex={entryIndex}
+                onChooseSuggestion={onChooseSuggestion}
+                onResetTo={onResetTo}
+                onRetry={onRetry}
+                onEdit={onEdit}
+                onRevealFinished={onRevealFinished}
+              />
+            )) : <div />
+        }
       </Box>
+      <ReactAudioPlayer style={{ width: "100%" }} src={audioSrc} ref={player} listenInterval={LISTEN_INTERVAL} autoPlay />
+      <Snackbar open={errorMessage !== undefined} autoHideDuration={10000} onClose={handleErrorClose}>
+        <Alert onClose={handleErrorClose} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

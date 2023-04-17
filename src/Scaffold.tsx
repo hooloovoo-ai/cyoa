@@ -1,11 +1,11 @@
 import { LoaderFunctionArgs, useLoaderData } from "react-router-dom";
 import Player from "./Player";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { History, Story } from "./types";
-import { Box, Container, CssBaseline, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, Menu, MenuItem, Select, SelectChangeEvent, Switch, Toolbar, Typography, styled, useTheme } from "@mui/material";
+import { Box, Container, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, Menu, MenuItem, Select, SelectChangeEvent, Switch, TextField, Toolbar, Typography, styled, useTheme } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { ChevronLeft, ChevronRight, Delete, Edit, Image, Menu as MenuIcon, RecordVoiceOver, Settings, } from "@mui/icons-material";
+import { Check, ChevronLeft, ChevronRight, Close, Delete, Edit, Image, Menu as MenuIcon, RecordVoiceOver, Settings, } from "@mui/icons-material";
 
 export async function loaderEdit(loaderArgs: LoaderFunctionArgs) {
   return { storyId: loaderArgs.params.story, playMode: false };
@@ -94,7 +94,6 @@ export default function Scaffold() {
   }, [loaderArgs]);
 
   const onHistoryChange = useCallback((history: History[]) => {
-    console.log("onHistoryChange", history);
     if (history.length === 0)
       return;
     if (history[0].chosenSuggestion === undefined)
@@ -112,6 +111,7 @@ export default function Scaffold() {
 
     if (!story.title && history.length > 0) {
       story.title = history[0].text.split("\n")[0];
+      setTitle(story.title);
     }
     story.lastEdited = Date.now();
     story.data = history;
@@ -144,6 +144,29 @@ export default function Scaffold() {
     setMenuAnchorEl(null);
   }, []);
 
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const renameTextField = useRef<HTMLTextAreaElement | null>(null);
+  const onRenameDialogClose = useCallback(() => {
+    setRenameDialogOpen(false);
+  }, [renameTextField]);
+  const onRenameDialogAccept = useCallback(() => {
+    if (renameTextField.current) {
+      if (!renameTextField.current.value)
+        return;
+      let story = library.find(x => x.id === id);
+      if (!story)
+        return;
+
+      story.title = renameTextField.current.value;
+      setTitle(story.title)
+
+      story.lastEdited = Date.now();
+      localStorage.setItem("library", JSON.stringify(library));
+      setLibrary(library);
+    }
+    onRenameDialogClose();
+  }, [library, id, onRenameDialogClose]);
+
 
   return (
     <Container maxWidth="md">
@@ -167,6 +190,7 @@ export default function Scaffold() {
               color="inherit"
               edge="start"
               sx={{ ml: 3, display: landing ? "none" : "block" }}
+              onClick={() => setRenameDialogOpen(true)}
             >
               <Edit />
             </IconButton>
@@ -274,6 +298,20 @@ export default function Scaffold() {
         onHistoryChange={onHistoryChange}
         start={playerStart}
       />
+      <Dialog open={renameDialogOpen}>
+        <DialogTitle>Rename story</DialogTitle>
+        <DialogContent>
+          <TextField inputRef={renameTextField} autoFocus multiline fullWidth margin="dense" variant="standard" defaultValue={title} />
+        </DialogContent>
+        <DialogActions>
+          <IconButton onClick={onRenameDialogAccept}>
+            <Check />
+          </IconButton>
+          <IconButton onClick={onRenameDialogClose}>
+            <Close />
+          </IconButton>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

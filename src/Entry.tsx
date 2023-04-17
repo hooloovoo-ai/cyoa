@@ -1,4 +1,4 @@
-import { Check, Close, EditOutlined, LooksOneOutlined, LooksTwoOutlined, MoreVert, Replay, SkipPrevious, Undo } from "@mui/icons-material";
+import { Check, Close, Edit, EditOutlined, LooksOneOutlined, LooksTwoOutlined, MoreVert, Replay, SkipPrevious, Undo } from "@mui/icons-material";
 import { Avatar, Box, Dialog, DialogActions, DialogContent, DialogTitle, Fade, IconButton, LinearProgress, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack, TextField, useMediaQuery, useTheme } from "@mui/material";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { History } from "./types";
@@ -161,7 +161,7 @@ export default function Entry(params: EntryParams) {
   const theme = useTheme();
   const dialogFullscreen = useMediaQuery(theme.breakpoints.down('md'));
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [pendingText, setPendingText] = useState("");
+  const [pendingText, setPendingText] = useState(() => params.entry.text);
   const textField = useRef<HTMLTextAreaElement | null>(null);
   const onDialogClose = useCallback(() => {
     if (textField.current)
@@ -232,6 +232,12 @@ export default function Entry(params: EntryParams) {
                   )
                   : (
                     <Menu anchorEl={menuAnchorEl} open={menuOpen} onClose={handleMenuClose}>
+                      <MenuItem onClick={() => setDialogOpen(true)}>
+                        <ListItemIcon>
+                          <Edit />
+                        </ListItemIcon>
+                        <ListItemText>Edit</ListItemText>
+                      </MenuItem>
                       <MenuItem onClick={() => onMenuResetTo(params.entryIndex)}>
                         <ListItemIcon>
                           <SkipPrevious />
