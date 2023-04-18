@@ -166,6 +166,7 @@ export default function Entry(params: EntryParams) {
   const onDialogClose = useCallback(() => {
     if (textField.current)
       setPendingText(textField.current.value);
+    handleMenuClose();
     setDialogOpen(false);
   }, [textField]);
   const onDialogAccept = useCallback(() => {
