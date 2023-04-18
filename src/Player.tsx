@@ -7,7 +7,7 @@ import { History, InitialPrompt, Suggestion } from "./types";
 import { default as InitialPrompts } from "./prompts.json";
 
 const LISTEN_INTERVAL = 33;
-const DEFAULT_REVEAL_DURATION = 45 * 1000;
+const REVEAL_DURATION_PER_CHARACTER = 50;
 const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
 export interface PlayerParams {
@@ -123,9 +123,9 @@ export default function Player(params: PlayerParams) {
               prev[lastIndex].audio = data.audio;
               setAudioSrc(data.audio.url);
             } else {
-              prev[lastIndex].revealDuration = DEFAULT_REVEAL_DURATION;
+              prev[lastIndex].revealDuration = prev[lastIndex].text.length * REVEAL_DURATION_PER_CHARACTER
             }
-            prev[lastIndex].images = data.images;
+            prev[lastIndex].images = data.images ?? [];
             return [...prev];
           });
         });
