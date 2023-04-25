@@ -7,7 +7,7 @@ import { History, InitialPrompt, Suggestion } from "./types";
 import { default as InitialPrompts } from "./prompts.json";
 
 const LISTEN_INTERVAL = 33;
-const REVEAL_DURATION_PER_CHARACTER = 50;
+const REVEAL_DURATION_PER_CHARACTER = 33;
 const INITIAL_PROMPTS: InitialPrompt[] = InitialPrompts.prompts;
 
 export interface PlayerParams {
