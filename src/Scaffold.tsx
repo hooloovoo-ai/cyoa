@@ -194,13 +194,13 @@ export default function Scaffold() {
             >
               <Edit />
             </IconButton>
-            <IconButton
+            {/*<IconButton
               color="inherit"
               edge="start"
               sx={{ ml: 1, display: landing ? "none" : "block" }}
             >
               <Delete />
-            </IconButton>
+            </IconButton>*/}
             <Box sx={{ flexGrow: landing ? 0 : 1 }} />
             <IconButton
               aria-controls="menu-appbar"
@@ -247,8 +247,8 @@ export default function Scaffold() {
                     <MenuItem value={0}>0</MenuItem>
                     <MenuItem value={1}>1</MenuItem>
                     <MenuItem value={2}>2</MenuItem>
-                    <MenuItem value={3}>3</MenuItem>
-                    <MenuItem value={4}>4</MenuItem>
+                    {/*<MenuItem value={3}>3</MenuItem>
+                    <MenuItem value={4}>4</MenuItem>*/}
                   </Select>
                 </FormControl>
               </MenuItem>
