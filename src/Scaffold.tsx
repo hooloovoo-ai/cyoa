@@ -291,7 +291,7 @@ export default function Scaffold() {
         </Drawer>
       </Box>
       <DrawerHeader />
-      <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" paddingTop={2}>
+      <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" paddingTop={2} useFlexGap flexWrap="wrap">
         <Button variant="outlined" startIcon={<Twitter />} component="a" href="https://twitter.com/theemozilla" target="_blank">
           Twitter
         </Button>
