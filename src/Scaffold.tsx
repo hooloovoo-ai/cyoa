@@ -3,9 +3,9 @@ import Player from "./Player";
 import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { History, Story } from "./types";
-import { Box, Container, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, Menu, MenuItem, Select, SelectChangeEvent, Switch, TextField, Toolbar, Typography, styled, useTheme } from "@mui/material";
+import { Box, Button, Container, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, Menu, MenuItem, Select, SelectChangeEvent, Stack, Switch, TextField, Toolbar, Typography, styled, useTheme } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { Check, ChevronLeft, ChevronRight, Close, Delete, Edit, Image, Menu as MenuIcon, RecordVoiceOver, Settings, } from "@mui/icons-material";
+import { Article, Check, ChevronLeft, ChevronRight, Close, Delete, Edit, Image, Menu as MenuIcon, RecordVoiceOver, Settings, Twitter, } from "@mui/icons-material";
 
 export async function loaderEdit(loaderArgs: LoaderFunctionArgs) {
   return { storyId: loaderArgs.params.story, playMode: false };
@@ -291,6 +291,17 @@ export default function Scaffold() {
         </Drawer>
       </Box>
       <DrawerHeader />
+      <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" paddingTop={2}>
+        <Button variant="outlined" startIcon={<Twitter />} component="a" href="https://twitter.com/theemozilla" target="_blank">
+          Twitter
+        </Button>
+        <Button variant="outlined" startIcon={<Article />} component="a" href="https://jeffq.com/blog/choose-your-own-adventure" target="_blank">
+          Blog
+        </Button>
+        <Button variant="outlined" startIcon="🤗" component="a" href="https://huggingface.co/emozilla/scifi-fantasy-author-7b-8k_delta" target="_blank">
+          Hugging Face
+        </Button>
+      </Stack>
       <Player
         playMode={playMode}
         imagineAudio={imagineAudio}
