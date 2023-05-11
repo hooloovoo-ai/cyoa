@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { History, Story } from "./types";
 import { Box, Button, Container, CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemText, Menu, MenuItem, Select, SelectChangeEvent, Stack, Switch, TextField, Toolbar, Typography, styled, useTheme } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { Article, Check, ChevronLeft, ChevronRight, Close, Delete, Edit, Image, Menu as MenuIcon, RecordVoiceOver, Settings, Twitter, } from "@mui/icons-material";
+import { Article, Check, ChevronLeft, ChevronRight, Close, Delete, Edit, GitHub, Image, Menu as MenuIcon, RecordVoiceOver, Settings, Twitter, } from "@mui/icons-material";
 
 export async function loaderEdit(loaderArgs: LoaderFunctionArgs) {
   return { storyId: loaderArgs.params.story, playMode: false };
@@ -299,7 +299,13 @@ export default function Scaffold() {
           Blog
         </Button>
         <Button variant="outlined" startIcon="🤗" component="a" href="https://huggingface.co/emozilla/scifi-fantasy-author-7b-8k_delta" target="_blank">
-          Hugging Face
+          Model
+        </Button>
+        <Button variant="outlined" startIcon={<GitHub />} component="a" href="https://github.com/hooloovoo-ai/cyoa-backend/" target="_blank">
+          Backend
+        </Button>
+        <Button variant="outlined" startIcon={<GitHub />} component="a" href="https://github.com/hooloovoo-ai/cyoa/" target="_blank">
+          Frontend
         </Button>
       </Stack>
       <Player
