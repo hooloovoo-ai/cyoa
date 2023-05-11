@@ -260,7 +260,7 @@ export default function Entry(params: EntryParams) {
                 <ListItem key={suggestionIndex} sx={{ "opacity": !params.isLatest || (params.entry.chosenSuggestion !== undefined && suggestionIndex !== params.entry.chosenSuggestion) ? "30%" : "100%" }}>
                   <ListItemAvatar>
                     <Avatar>
-                      <IconButton disabled={params.entry.chosenSuggestion !== undefined || !params.isLatest} onClick={() => params.onChooseSuggestion(suggestionIndex)}>
+                      <IconButton disabled={(params.entry.chosenSuggestion !== undefined && !params.entry.editing) || !params.isLatest} onClick={() => params.onChooseSuggestion(suggestionIndex)}>
                         {
                           suggestionIndex === 0 ? <LooksOneOutlined /> : <LooksTwoOutlined />
                         }
